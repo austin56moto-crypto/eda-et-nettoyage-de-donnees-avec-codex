@@ -1,0 +1,14 @@
+# Core data processing
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+
+# Text similarity and reporting
+rapidfuzz>=3.9,<4.0
+tabulate>=0.9,<1.0
+
+# Date parsing and Excel workbook support
+python-dateutil>=2.9,<3.0
+openpyxl>=3.1,<4.0
+
+# Local dashboard web app
+Flask>=3.0,<4.0

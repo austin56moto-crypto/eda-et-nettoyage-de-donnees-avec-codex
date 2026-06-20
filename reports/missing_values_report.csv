@@ -1,0 +1,43 @@
+column_name,inferred_type,total_rows,missing_count,missing_percentage,recommendation
+coverage,text,224000,223998,100.0,Possible Removal
+federal_riding_name_en,text,224000,223993,100.0,Possible Removal
+federal_riding_name_fr,text,224000,223994,100.0,Possible Removal
+federal_riding_number,text,224000,223995,100.0,Possible Removal
+amendment_date,date,224000,214478,95.75,Possible Removal
+recipient_operating_name,text,224000,213036,95.11,Possible Removal
+foreign_currency_type,text,224000,208126,92.91,Possible Removal
+foreign_currency_value,numeric,224000,208126,92.91,Possible Removal
+research_organization_name,text,224000,207362,92.57,Possible Removal
+naics_identifier,numeric,224000,200998,89.73,Possible Removal
+recipient_business_number,numeric,224000,190152,84.89,Possible Removal
+recipient_type,text,224000,164764,73.56,Possible Removal
+additional_information_fr,text,224000,150085,67.0,Evaluate Utility
+additional_information_en,text,224000,150046,66.98,Evaluate Utility
+prog_purpose_fr,text,224000,117334,52.38,Evaluate Utility
+prog_purpose_en,text,224000,114945,51.31,Evaluate Utility
+expected_results_fr,text,224000,114085,50.93,Evaluate Utility
+expected_results_en,text,224000,113951,50.87,Evaluate Utility
+agreement_title_en,text,224000,85744,38.28,Imputation + Missing Flag
+agreement_title_fr,text,224000,85754,38.28,Imputation + Missing Flag
+recipient_postal_code,text,224000,84525,37.73,Imputation + Missing Flag
+agreement_number,numeric,224000,68985,30.8,Imputation + Missing Flag
+prog_name_en,text,224000,65247,29.13,Imputation + Missing Flag
+prog_name_fr,text,224000,62870,28.07,Imputation + Missing Flag
+agreement_end_date,date,224000,55585,24.81,Imputation + Missing Flag
+description_en,text,224000,45911,20.5,Imputation + Missing Flag
+description_fr,text,224000,45911,20.5,Imputation + Missing Flag
+recipient_country,text,224000,47,0.02,Simple Imputation
+#,numeric,224000,0,0.0,Nothing
+agreement_start_date,date,224000,0,0.0,Nothing
+agreement_type,text,224000,1,0.0,Nothing
+agreement_value,numeric,224000,0,0.0,Nothing
+amendment_number,numeric,224000,0,0.0,Nothing
+owner_org,text,224000,0,0.0,Nothing
+owner_org_title,text,224000,0,0.0,Nothing
+recipient_city_clean,text,224000,0,0.0,Nothing
+recipient_legal_name,text,224000,0,0.0,Nothing
+recipient_legal_name_clean,text,224000,0,0.0,Nothing
+recipient_legal_name_clean_formula,text,224000,0,0.0,Nothing
+recipient_legal_name_final,text,224000,0,0.0,Nothing
+recipient_province_clean,text,224000,0,0.0,Nothing
+ref_number,text,224000,0,0.0,Nothing

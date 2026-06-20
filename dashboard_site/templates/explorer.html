@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Dataset Explorer{% endblock %}
+
+{% block content %}
+  <section class="panel explorer-hero" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Cleaned dataset explorer</p>
+        <h1>Search the processed export without opening the full CSV manually</h1>
+      </div>
+      <a class="button button-secondary" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+    </div>
+    <p class="section-note">
+      Search runs against the cleaned CSV in chunks, so the page stays usable even when the export is large.
+    </p>
+    <div class="hero-chip-row">
+      <span class="hero-chip">Chunked search</span>
+      <span class="hero-chip">Live cleaned fields</span>
+      <span class="hero-chip">Manual review support</span>
+    </div>
+    <form class="explorer-form" method="get" action="{{ url_for('explorer') }}">
+      <label>
+        <span>Search text</span>
+        <input
+          type="text"
+          name="q"
+          value="{{ results.query }}"
+          placeholder="Try a recipient, reference number, owner organization, or agreement title"
+        >
+      </label>
+      <label>
+        <span>Search scope</span>
+        <select name="field">
+          {% for item in filters %}
+            <option value="{{ item.value }}" {% if results.field == item.value %}selected{% endif %}>
+              {{ item.label }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <button class="button button-primary" type="submit">Search</button>
+    </form>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Results</p>
+        <h2>
+          {% if results.query %}
+            {{ results.result_count }} matches for "{{ results.query }}"
+          {% else %}
+            {{ results.result_count }} preview rows
+          {% endif %}
+        </h2>
+      </div>
+      {% if results.truncated %}
+        <p class="section-note">Results were capped to keep the page responsive.</p>
+      {% endif %}
+    </div>
+
+    {% if results.error %}
+      <div class="callout callout-warning">{{ results.error }}</div>
+    {% elif not results.rows %}
+      <div class="callout">No rows matched that search.</div>
+    {% else %}
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% for column in results.columns %}
+                  <th>{{ column.replace("_", " ") }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in results.rows %}
+                <tr>
+                  {% for column in results.columns %}
+                    <td>{{ row[column] }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

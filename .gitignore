@@ -1,0 +1,16 @@
+# Python cache and local env noise
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# macOS noise
+.DS_Store
+
+# Local large data artifacts
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Grant Data Quality Review{% endblock %}</title>
+    <meta
+      name="description"
+      content="Interactive local dashboard for grant-data quality analysis, cleaning outputs, and review workflows."
+    >
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body class="theme-night">
+    <div class="page-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+      <div class="ambient ambient-three"></div>
+      <header class="site-header">
+        <a class="brand" href="{{ url_for('dashboard') }}">
+          <span class="brand-kicker">Quality Review</span>
+          <strong>Grant Data Dashboard</strong>
+        </a>
+        <nav class="site-nav">
+          <a href="{{ url_for('dashboard') }}#overview">Overview</a>
+          <a href="{{ url_for('dashboard') }}#lens">Lens</a>
+          <a href="{{ url_for('dashboard') }}#missingness">Missingness</a>
+          <a href="{{ url_for('dashboard') }}#duplicates">Duplicates</a>
+          <a href="{{ url_for('dashboard') }}#variants">Variants</a>
+          <a href="{{ url_for('explorer') }}">Explorer</a>
+        </nav>
+        <button class="command-button" type="button" data-command-open>
+          Quick menu
+          <span>⌘K</span>
+        </button>
+      </header>
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="site-footer">
+        <div>
+          <strong>Local review surface</strong>
+          <p>Built from the generated reports and cleaned dataset inside this project workspace.</p>
+        </div>
+        <div class="footer-links">
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('explorer') }}">Explorer</a>
+        </div>
+      </footer>
+    </div>
+    <div class="command-palette" data-command-palette hidden>
+      <div class="command-backdrop" data-command-close></div>
+      <div class="command-dialog">
+        <div class="command-header">
+          <strong>Jump to a section</strong>
+          <button type="button" data-command-close>Close</button>
+        </div>
+        <div class="command-list">
+          <a href="{{ url_for('dashboard') }}" data-command-item>Dashboard overview</a>
+          <a href="{{ url_for('dashboard') }}#lens" data-command-item>Analysis lens</a>
+          <a href="{{ url_for('dashboard') }}#missingness" data-command-item>Missingness section</a>
+          <a href="{{ url_for('dashboard') }}#duplicates" data-command-item>Duplicates section</a>
+          <a href="{{ url_for('dashboard') }}#variants" data-command-item>Variants section</a>
+          <a href="{{ url_for('explorer') }}" data-command-item>Dataset explorer</a>
+          <a href="{{ url_for('download_artifact', slug='final-report') }}" data-command-item>Download final report</a>
+          <a href="{{ url_for('download_artifact', slug='cleaned-dataset') }}" data-command-item>Download cleaned dataset</a>
+        </div>
+      </div>
+    </div>
+    <div class="record-drawer" data-record-drawer hidden>
+      <div class="record-backdrop" data-record-close></div>
+      <aside class="record-panel">
+        <div class="command-header">
+          <strong>Record details</strong>
+          <button type="button" data-record-close>Close</button>
+        </div>
+        <div class="record-grid" data-record-grid></div>
+      </aside>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>

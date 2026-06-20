@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+
+{% block title %}Grant Data Quality Review{% endblock %}
+
+{% block content %}
+  <section class="hero panel" id="overview" data-reveal>
+    <div class="hero-copy">
+      <p class="eyebrow">Local monitoring site</p>
+      <h1>{{ project_title }}</h1>
+      <p class="hero-text">
+        This site turns the pipeline outputs into a working review surface for missingness,
+        duplicate pressure, organization-name normalization, and cleaned export validation.
+      </p>
+      <div class="hero-chip-row">
+        <span class="hero-chip">Missingness control</span>
+        <span class="hero-chip">Duplicate review</span>
+        <span class="hero-chip">Normalization audit</span>
+      </div>
+      <div class="hero-actions">
+        <a class="button button-primary" href="{{ url_for('explorer') }}">Open Dataset Explorer</a>
+        <a class="button button-secondary" href="{{ url_for('download_artifact', slug='final-report') }}">Download Final Report</a>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <div class="meta-card meta-card-accent">
+        <span>Primary sheet</span>
+        <strong>{{ primary_sheet }}</strong>
+      </div>
+      <div class="meta-card meta-card-teal">
+        <span>Preferred organization field</span>
+        <strong>{{ primary_organization_column }}</strong>
+      </div>
+      <div class="meta-card meta-card-gold">
+        <span>Artifacts updated</span>
+        <strong>{{ last_updated }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="metrics-grid" data-reveal>
+    {% for card in summary_cards %}
+      <article class="metric-card metric-card-{{ card.tone }}">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value }}</strong>
+        <p>{{ card.detail }}</p>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="panel focus-panel" id="lens" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Analysis lens</p>
+        <h2>Focus the cleaned dataset on a specific slice</h2>
+      </div>
+      <a
+        class="button button-secondary"
+        href="{{ url_for('explorer', q=focus_filters.search, field='all') if focus_filters.search else url_for('explorer') }}"
+      >
+        Open Explorer
+      </a>
+    </div>
+    <p class="section-note">
+      These controls query the cleaned CSV directly and recalculate the summary cards and charts below.
+    </p>
+    <form class="focus-form" method="get" action="{{ url_for('dashboard') }}">
+      <label>
+        <span>Search text</span>
+        <input
+          type="text"
+          name="search"
+          value="{{ focus_filters.search }}"
+          placeholder="Recipient, reference number, owner organization, or agreement title"
+        >
+      </label>
+      <label>
+        <span>Province / region</span>
+        <select name="province">
+          <option value="">All regions</option>
+          {% for option in focus_filter_options.provinces %}
+            <option value="{{ option }}" {% if focus_filters.province == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Owner organization</span>
+        <select name="owner_org">
+          <option value="">Top organizations</option>
+          {% for option in focus_filter_options.owner_orgs %}
+            <option value="{{ option }}" {% if focus_filters.owner_org == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Start year</span>
+        <select name="year">
+          <option value="">All years</option>
+          {% for option in focus_filter_options.years %}
+            <option value="{{ option }}" {% if focus_filters.year == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="focus-actions">
+        <button class="button button-primary" type="submit">Apply lens</button>
+        <a class="button button-secondary" href="{{ url_for('dashboard') }}">Reset</a>
+      </div>
+    </form>
+    <div class="focus-status">
+      {% if focus_active %}
+        <div class="filter-pill-row">
+          {% for item in focus_applied_filters %}
+            <span class="hero-chip">{{ item }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="callout">Showing the full cleaned dataset because no lens filters are active.</div>
+      {% endif %}
+    </div>
+    <section class="focus-metrics-grid">
+      {% for card in focus_cards %}
+        <article class="metric-card metric-card-{{ card.tone }}">
+          <span>{{ card.label }}</span>
+          <strong>{{ card.value }}</strong>
+          <p>{{ card.detail }}</p>
+        </article>
+      {% endfor %}
+    </section>
+    <div class="comparison-grid">
+      {% for card in comparison_cards %}
+        <article class="comparison-card">
+          <span>{{ card.label }}</span>
+          <strong>{{ card.value }}</strong>
+          <p>{{ card.detail }}</p>
+        </article>
+      {% endfor %}
+    </div>
+    <div class="insight-grid">
+      {% for card in insight_cards %}
+        <article class="insight-card">
+          <span>{{ card.label }}</span>
+          <strong>{{ card.value }}</strong>
+          <p>{{ card.detail }}</p>
+        </article>
+      {% endfor %}
+    </div>
+    <div class="chart-grid">
+      <article class="chart-card">
+        <div class="table-header">
+          <h3>Top owner organizations</h3>
+          <span class="pill">{{ focus_unique_owner_orgs }} unique</span>
+        </div>
+        <div
+          class="chart-canvas"
+          data-chart-type="horizontal"
+          data-chart-values='{{ focus_owner_chart|tojson }}'
+        ></div>
+      </article>
+      <article class="chart-card">
+        <div class="table-header">
+          <h3>Top provinces</h3>
+          <span class="pill">{{ focus_record_count }} rows</span>
+        </div>
+        <div
+          class="chart-canvas"
+          data-chart-type="horizontal"
+          data-chart-values='{{ focus_province_chart|tojson }}'
+        ></div>
+      </article>
+      <article class="chart-card chart-card-wide">
+        <div class="table-header">
+          <h3>Recent start-year distribution</h3>
+          <span class="pill">Matching records only</span>
+        </div>
+        <div
+          class="chart-canvas chart-canvas-vertical"
+          data-chart-type="vertical"
+          data-chart-values='{{ focus_year_chart|tojson }}'
+        ></div>
+      </article>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Filtered dataset preview</h3>
+        <a
+          href="{{ url_for('explorer', q=focus_filters.search, field='all') if focus_filters.search else url_for('explorer') }}"
+        >
+          Open full explorer
+        </a>
+      </div>
+      {% if focus_empty %}
+        <div class="callout callout-warning">
+          No cleaned records matched the current lens. Try widening the filters.
+        </div>
+      {% else %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% for column in focus_preview_columns %}
+                  <th>{{ column.replace("_", " ") }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in focus_preview_rows %}
+                <tr class="interactive-row" data-row-detail='{{ row|tojson }}'>
+                  {% for column in focus_preview_columns %}
+                    <td>{{ row[column] }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if focus_truncated %}
+          <p class="section-note">Preview limited to the first {{ focus_preview_rows|length }} matching rows.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="detail-grid" data-reveal>
+    {% for card in narrative_cards %}
+      <article class="detail-card">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value }}</strong>
+        <p>{{ card.detail }}</p>
+      </article>
+    {% endfor %}
+  </section>
+
+  <div class="scope-note" data-reveal>
+    The analysis lens recalculates the cleaned-dataset cards, charts, and preview above. The report sections below remain full-pipeline outputs so you can compare focused slices against the global audit.
+  </div>
+
+  <section class="panel panel-split" id="missingness" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Missingness</p>
+        <h2>Column pressure by recommendation band</h2>
+      </div>
+      <p class="section-note">The bars show where the dataset is closest to removal or review risk.</p>
+    </div>
+    <div class="split-layout">
+      <div class="distribution-card">
+        <h3>Recommendation distribution</h3>
+        <div class="stack-list">
+          {% for item in missing_distribution %}
+            <div class="stack-row">
+              <div>
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.display_value }} columns</span>
+              </div>
+              <span class="pill">{{ item.share }}%</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="bar-card">
+        <h3>Top missing columns</h3>
+        <div class="bar-list">
+          {% for row in missing_bars %}
+            <div class="bar-row">
+              <span class="bar-label">{{ row.label }}</span>
+              <div class="bar-track">
+                <span class="bar-fill" style="width: {{ row.width }}%"></span>
+              </div>
+              <strong>{{ row.display_value }}</strong>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Missing values report preview</h3>
+        <a href="{{ url_for('download_artifact', slug='missing-values') }}">Download CSV</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {% if missing_table %}
+                {% for key in missing_table[0].keys() %}
+                  <th>{{ key.replace("_", " ") }}</th>
+                {% endfor %}
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in missing_table %}
+              <tr>
+                {% for value in row.values() %}
+                  <td>{{ value }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel panel-split" id="duplicates" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Duplicate review</p>
+        <h2>Identifier collisions and probable duplicate clusters</h2>
+      </div>
+      <p class="section-note">These groups need manual interpretation because amendments and repeated entities can be legitimate.</p>
+    </div>
+    <div class="split-layout">
+      <div class="distribution-card">
+        <h3>Duplicate distribution</h3>
+        <div class="stack-list">
+          {% for item in duplicate_distribution %}
+            <div class="stack-row">
+              <div>
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.display_value }} groups</span>
+              </div>
+              <span class="pill">{{ item.share }}%</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="candidate-card">
+        <h3>Primary business keys watched</h3>
+        <ul class="token-list">
+          {% for item in duplicate_candidates %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Top duplicate groups</h3>
+        <a href="{{ url_for('download_artifact', slug='duplicates') }}">Download CSV</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {% if duplicate_table %}
+                {% for key in duplicate_table[0].keys() %}
+                  <th>{{ key.replace("_", " ") }}</th>
+                {% endfor %}
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in duplicate_table %}
+              <tr>
+                {% for value in row.values() %}
+                  <td>{{ value }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="variants" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Organization normalization</p>
+        <h2>Accepted vs review-only name mappings</h2>
+      </div>
+      <p class="section-note">Automatic corrections are limited to accepted matches. Review rows remain untouched in the cleaned dataset.</p>
+    </div>
+    <div class="split-layout">
+      <div class="distribution-card">
+        <h3>Variant status split</h3>
+        <div class="stack-list">
+          {% for item in variant_distribution %}
+            <div class="stack-row">
+              <div>
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.display_value }} pairs</span>
+              </div>
+              <span class="pill">{{ item.share }}%</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="candidate-card">
+        <h3>Organization-oriented fields</h3>
+        <ul class="token-list">
+          {% for item in organization_candidates %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="tab-strip" data-tabs>
+      <button class="tab-button is-active" type="button" data-tab-target="accepted-panel">Accepted examples</button>
+      <button class="tab-button" type="button" data-tab-target="review-panel">Review examples</button>
+    </div>
+    <div class="tab-panel is-active" id="accepted-panel">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Accepted mappings</h3>
+          <a href="{{ url_for('download_artifact', slug='organization-variants') }}">Download CSV</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% if accepted_variants %}
+                  {% for key in accepted_variants[0].keys() %}
+                    <th>{{ key.replace("_", " ") }}</th>
+                  {% endfor %}
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in accepted_variants %}
+                <tr>
+                  {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="review-panel">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Review-only mappings</h3>
+          <a href="{{ url_for('download_artifact', slug='cleaning-mapping') }}">Download mapping CSV</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% if review_variants %}
+                  {% for key in review_variants[0].keys() %}
+                    <th>{{ key.replace("_", " ") }}</th>
+                  {% endfor %}
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in review_variants %}
+                <tr>
+                  {% for value in row.values() %}
+                    <td>{{ value }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel panel-readiness" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Readiness</p>
+        <h2>Modeling posture and operating constraints</h2>
+      </div>
+      <a class="button button-secondary" href="{{ url_for('explorer') }}">Inspect cleaned records</a>
+    </div>
+    <div class="readiness-grid">
+      <article class="readiness-card">
+        <h3>Readiness summary</h3>
+        <p>{{ readiness_text }}</p>
+      </article>
+      <article class="readiness-card">
+        <h3>Current limitations</h3>
+        <ul class="limit-list">
+          {% for item in limitations %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Evaluation support</p>
+        <h2>Required questions</h2>
+      </div>
+      <p class="section-note">These answers come from the generated final report so the site doubles as a review aid.</p>
+    </div>
+    <div class="qa-grid">
+      {% for item in required_questions %}
+        <article class="qa-card" data-accordion>
+          <button class="qa-trigger" type="button">
+            <span>{{ item.number }}. {{ item.question }}</span>
+            <strong>Open</strong>
+          </button>
+          <div class="qa-answer">
+            <p>{{ item.answer }}</p>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel" data-reveal>
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Artifacts</p>
+        <h2>Downloads</h2>
+      </div>
+      <p class="section-note">Every generated report remains downloadable from the same review surface.</p>
+    </div>
+    <div class="download-grid">
+      {% for item in downloads %}
+        <article class="download-card">
+          <div>
+            <span class="pill">{{ item.kind }}</span>
+            <h3>{{ item.label }}</h3>
+            <p>{{ item.description }}</p>
+          </div>
+          <div class="download-meta">
+            <small>{{ item.size }}</small>
+            {% if item.exists %}
+              <a class="button button-secondary" href="{{ url_for('download_artifact', slug=item.slug) }}">Download</a>
+            {% else %}
+              <span class="button button-disabled">Missing</span>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
